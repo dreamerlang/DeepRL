@@ -6,8 +6,6 @@ from ddpg import DDPGAgent
 from emulator_env import Env
 
 
-
-
 def train_ddpg_with_onecar_oneuav():
     args = DDPGArgs()
     env = Env()

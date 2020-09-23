@@ -55,6 +55,9 @@ class Env:
     def reset(self):
         # del self._env
         self._env.reset()
+        String = jpype.JClass('java.lang.String')
+        self._env.addOneUav(String("uav0"), float(50.0), float(50.0), float(5.0))
+        self._env.addOneUgv(String("ugv0"), float(1200), float(250000), float(0.0), float(0.0), float(0.0))
         obs_str = self._env.getObs()
         obs = json.loads(str(obs_str))
         # uav+uvg
