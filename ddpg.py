@@ -101,6 +101,7 @@ class DDPGAgent:
         done = False
         total_reward = 0
         self._env.step_cnt = 0
+        self._env.loss_cnt = 0
         while not done:
             action = self.choose_action_with_exploration(self._pre.transform(state))  # 归一化
             state_, reward, done, _ = self._env.step(action * self._args.action_bound)

@@ -3,12 +3,15 @@ import json
 import numpy as np
 import uuid
 from gym import spaces
+import random
 
 jpype.startJVM(classpath=['./jars/UXVSim-1.0-SNAPSHOT-jar-with-dependencies.jar'])
 Emulator = jpype.JClass("uxvsim.Emulator")
 
 
 class Env:
+    CAN_SEE_RANGE = 10
+    MAX_STEP_CNT = 200
 
     def __init__(self):
         self._env = Emulator()
@@ -16,9 +19,10 @@ class Env:
         self.max_speed = 8
         self.max_bound = 1000
         self.step_cnt = 0
+        self.loss_cnt = 0
         self.observation_space = spaces.Box(
             low=-self.max_bound,
-            high=self.max_bound, shape=(6,),
+            high=self.max_bound, shape=(4,),
             dtype=np.float32
         )
         self.action_space = spaces.Box(
@@ -27,25 +31,32 @@ class Env:
             dtype=np.float32
         )
 
-    def get_reward(self, dis_square):
-        return -dis_square / 100.0
+    def get_reward(self, uav_x, uav_y, ugv_x, ugv_y):
+        if (uav_x - ugv_x) ** 2 + (uav_y - ugv_y) ** 2 <= Env.CAN_SEE_RANGE ** 2:
+            return 1
+        return 0
 
     def step(self, action):  # step  return a tuple（state_, reward, done, _）
-        cmd_list = [self.moveByVelocity('uav0', float(action[0]), float(action[1]), 0.0, 1.0, True)]
+        cmd_list = [self.moveByVelocity('uav0', float(action[0]), float(action[1]), 0.0, 1.0, True),
+                    self.moveToPosition('ugv0', 5, random.uniform(-50, 50), random.uniform(-50, 50), 0, False)]
         new_state_str = self._env.step(json.dumps(cmd_list))
         self.step_cnt += 1
         print('step:' + str(self.step_cnt))
         new_state_json = json.loads(str(new_state_str))
         uav_x, uav_y, uav_z = new_state_json[0], new_state_json[1], new_state_json[2]
         ugv_x, ugv_y, ugv_z = new_state_json[3], new_state_json[4], new_state_json[5]
-        dis_square = (uav_x - ugv_x) ** 2 + (uav_y - ugv_y) ** 2
-        reward = self.get_reward(dis_square)
+        reward = self.get_reward(uav_x, uav_y, ugv_x, ugv_y)
+        if reward == 1:
+            self.loss_cnt = 0
+        else:
+            self.loss_cnt += 1
+        state_ = np.array([uav_x, uav_y, ugv_x, ugv_y], dtype=np.float32)
+        info = {}
         done = False
-        if dis_square <= 1 or self.step_cnt >= 200:
+        if self.step_cnt == Env.MAX_STEP_CNT or self.loss_cnt > 10:
             done = True
             self.step_cnt = 0
-        state_ = np.array([uav_x, uav_y, uav_z, ugv_x, ugv_y, ugv_z], dtype=np.float32)
-        info = {}
+            self.loss_cnt = 0
         return state_, reward, done, info
 
     def get_observation(self):
@@ -56,12 +67,13 @@ class Env:
         # del self._env
         self._env.reset()
         String = jpype.JClass('java.lang.String')
-        self._env.addOneUav(String("uav0"), float(50.0), float(50.0), float(5.0))
+        self._env.addOneUav(String("uav0"), float(0.0), float(0.0), float(0.0))
         self._env.addOneUgv(String("ugv0"), float(1200), float(250000), float(0.0), float(0.0), float(0.0))
         obs_str = self._env.getObs()
         obs = json.loads(str(obs_str))
         # uav+uvg
-        return np.array(obs['objects'][0]['pos'] + obs['objects'][1]['pos'], dtype=np.float32)
+        return np.array([obs['objects'][0]['pos'][0], obs['objects'][0]['pos'][1], obs['objects'][1]['pos'][0],
+                         obs['objects'][1]['pos'][1]], dtype=np.float32)
 
     def get_jvm_memory(self):
         return self._runtime.totalMemory()
