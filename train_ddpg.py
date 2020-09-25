@@ -11,8 +11,8 @@ def train_ddpg():
     env = gym.make(args.env_name)
     agent = DDPGAgent(env, DDPGQNet, DDPGActor, SimpleNormalizer, args)
     for ep in range(args.max_ep):
-        agent.train_one_episode() == 0
-        if ep % args.test_interval:
+        agent.train_one_episode()
+        if ep % args.test_interval == 0:
             agent.test_model()
 
 

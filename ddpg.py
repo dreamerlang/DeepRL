@@ -129,7 +129,6 @@ class DDPGAgent:
             time.sleep(0.1)
         done = False
         total_reward = 0
-        self._env.step_cnt = 0
         while not done:
             action = self.choose_action(self._pre.transform(state))
             state_, reward, done, _ = self._env.step(action * self._args.action_bound)  # 环境里也需要约束速度大小

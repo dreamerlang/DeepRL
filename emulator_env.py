@@ -10,13 +10,13 @@ Emulator = jpype.JClass("uxvsim.Emulator")
 
 
 class Env:
-    CAN_SEE_RANGE = 10
+    CAN_SEE_RANGE = 20
     MAX_STEP_CNT = 200
 
     def __init__(self):
         self._env = Emulator()
         self._runtime = jpype.java.lang.Runtime.getRuntime()
-        self.max_speed = 8
+        self.max_speed = 5
         self.max_bound = 1000
         self.step_cnt = 0
         self.loss_cnt = 0
@@ -55,8 +55,6 @@ class Env:
         done = False
         if self.step_cnt == Env.MAX_STEP_CNT or self.loss_cnt > 10:
             done = True
-            self.step_cnt = 0
-            self.loss_cnt = 0
         return state_, reward, done, info
 
     def get_observation(self):
@@ -64,8 +62,10 @@ class Env:
         return json.loads(str(obs))
 
     def reset(self):
-        # del self._env
+        # reset self._env
         self._env.reset()
+        self.step_cnt = 0
+        self.loss_cnt = 0
         String = jpype.JClass('java.lang.String')
         self._env.addOneUav(String("uav0"), float(0.0), float(0.0), float(0.0))
         self._env.addOneUgv(String("ugv0"), float(1200), float(250000), float(0.0), float(0.0), float(0.0))
