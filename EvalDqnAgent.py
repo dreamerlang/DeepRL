@@ -9,7 +9,7 @@ from model.actor import DDPGActor
 
 class EvalDDPGAgent:
 
-    def __init__(self, pnet_cls, eval_env, preprocessing_cls, action_bound):
+    def __init__(self, pnet_cls, preprocessing_cls, eval_env, action_bound):
         self.state_dim, self.action_dim = eval_env.observation_space.shape, eval_env.action_space.shape[0]
         self._actor = pnet_cls(self.state_dim, self.action_dim)
         self._pre = preprocessing_cls(eval_env)
@@ -40,4 +40,3 @@ class EvalDDPGAgent:
         self._pre.load(norm_dir)
         r = [self._eval() for _ in range(n)]
         return np.mean(r)
-

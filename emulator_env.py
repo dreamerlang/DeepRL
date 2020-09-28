@@ -53,7 +53,7 @@ class Env:
         state_ = np.array([uav_x, uav_y, ugv_x, ugv_y], dtype=np.float32)
         info = {}
         done = False
-        if self.step_cnt == Env.MAX_STEP_CNT or self.loss_cnt>10:
+        if self.step_cnt == Env.MAX_STEP_CNT or self.loss_cnt > 10:
             done = True
         return state_, reward, done, info
 
@@ -74,6 +74,9 @@ class Env:
         # uav+uvg
         return np.array([obs['objects'][0]['pos'][0], obs['objects'][0]['pos'][1], obs['objects'][1]['pos'][0],
                          obs['objects'][1]['pos'][1]], dtype=np.float32)
+
+    def close(self):
+        self._env.close()
 
     def get_jvm_memory(self):
         return self._runtime.totalMemory()
