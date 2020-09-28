@@ -15,8 +15,8 @@ class DDPGArgs:
         self.max_ep = int(input('input max train episode: ')) #最多训练多少轮
         self.scale = float(input('input scale: ')) #探索的标准差 0.1到1
 
-        self.log_dir = '../logs/ddpg/{}'.format(self.env_name) #tensorboard路径
-        self.save_path = '../result/ddpg/{}/'.format(self.env_name) #模型
+        self.log_dir = './logs/ddpg/{}'.format(self.env_name) #tensorboard路径
+        self.save_path = './result/ddpg/{}/'.format(self.env_name) #模型
 
 
 class DQNArgs:
