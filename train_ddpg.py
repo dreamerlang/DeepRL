@@ -14,6 +14,7 @@ def train_ddpg():
         agent.train_one_episode()
         if ep % args.test_interval == 0:
             agent.test_model()
+            #agent.save('./model/{}/{}/'.format(args.env_name,ep))
 
 
 if __name__ == '__main__':

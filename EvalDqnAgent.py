@@ -1,37 +1,43 @@
 import torch
 import numpy as np
+from deeprl_util.preprocessing import SimpleNormalizer
 import time
 
+from emulator_env import Env
+from model.actor import DDPGActor
 
-class EvalDqnAgent:
 
-    def __init__(self, q_net, eval_env):
-        self._q = q_net
+class EvalDDPGAgent:
+
+    def __init__(self, pnet_cls, eval_env, preprocessing_cls, action_bound):
+        self.state_dim, self.action_dim = eval_env.observation_space.shape, eval_env.action_space.shape[0]
+        self._actor = pnet_cls(self.state_dim, self.action_dim)
+        self._pre = preprocessing_cls(eval_env)
         self._env = eval_env
+        self._action_bound = action_bound
 
     def choose_action(self, state):
-        s = torch.tensor([state]).float()
         with torch.no_grad():
-            q_val = self._q(s)[0].numpy()
-        return np.argmax(q_val)
+            state = torch.from_numpy(state).float()
+            action = self._actor(state)
+        action = action.detach().numpy()
+        return action  # np.array([0.0,0.0,0.0],dtype=float)
 
-    def _eval(self, viewer=False):
-        s = self._env.reset()
-        d = False
-        total_r = 0
-        while not d:
-            actions = []
-            for now_s in s:
-                a = self.choose_action(now_s)
-                actions.append(a)
-            s, r, d, _ = self._env.step(actions)
-            if viewer:
-                self._env.render()
-                time.sleep(0.5)
-            total_r += sum(r)
-        return total_r
+    def _eval(self):
+        state = self._env.reset()
+        done = False
+        total_reward = 0
+        while not done:
+            action = self.choose_action(self._pre.transform(state))
+            state_, reward, done, _ = self._env.step(action * self._action_bound)  # 环境里也需要约束速度大小
+            state = state_
+            total_reward += reward
+        return total_reward
 
-    def run_eval(self, state_dict, n, viewer=False):
-        self._q.load_state_dict(state_dict)
-        r = [self._eval(viewer) for _ in range(n)]
+    def run_eval(self, network_path, norm_dir, n):
+        state_dict = torch.load(network_path)
+        self._actor.load_state_dict(state_dict)
+        self._pre.load(norm_dir)
+        r = [self._eval() for _ in range(n)]
         return np.mean(r)
+

@@ -1,2 +1,5 @@
+import os
 if __name__ == '__main__':
-    print('')
+    dir='./result/ddpg/test'
+    if not os.path.exists(dir):
+        os.makedirs(dir)
