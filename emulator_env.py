@@ -10,7 +10,7 @@ Emulator = jpype.JClass("uxvsim.Emulator")
 
 
 class Env:
-    CAN_SEE_RANGE = 40
+    CAN_SEE_RANGE = 20
     MAX_STEP_CNT = 200
 
     def __init__(self):
