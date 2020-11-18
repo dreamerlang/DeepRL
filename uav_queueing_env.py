@@ -34,7 +34,7 @@ class Env:
             sort_list.append([discretized_pos_x, discretized_pos_y, int(obj['id'])])
         sort_list.sort()
         obs_list = []
-        for i in range(0, 5):
+        for i in range(0, 4):
             single_list = []
             for obs in sort_list:
                 if obs[2] == i:
@@ -55,11 +55,16 @@ class Env:
         pass
 
     def reset(self):
-        random_x = random.randint(0, 10)
+        random_x = random.randint(0, 9)
         while random_x == 0 or random_x == 9:
-            random_x = random.randint(0, 10)
+            random_x = random.randint(0, 9)
         random_y = random.randint(0, 10)
         while random_y == 0 or random_y == 9:
-            random_y = random.randint(0, 10)
+            random_y = random.randint(0, 9)
         self._target_x=random_x
         self._target_y=random_y
+        String = jpype.JClass('java.lang.String')
+        self._env.addOneUav(String("0"), float(10.0), float(10.0), float(0.0))
+        self._env.addOneUav(String("1"), float(10.0), float(50.0), float(0.0))
+        self._env.addOneUav(String("2"), float(50.0), float(50.0), float(0.0))
+        self._env.addOneUav(String("3"), float(50.0), float(10.0), float(0.0))
