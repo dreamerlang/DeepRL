@@ -14,4 +14,4 @@ if __name__ == '__main__':
     print(lists)
     lists.sort()
     print(lists)
-    print(lists[1])
+
