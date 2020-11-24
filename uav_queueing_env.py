@@ -16,9 +16,11 @@ class Env:
         self._runtime = jpype.java.lang.Runtime.getRuntime()
         self._target_x = 0
         self._target_y = 0
+        self.move_action = [[0, 0], [-1, 0], [1, 0], [0, 1], [0, -1]]
+        self.initial_height = 20.0
         self.reset()
 
-    def discretize_position(self, x, y):  #一格的长度表示20
+    def discretize_position(self, x, y):  # 一格的长度表示20
         return int(round(x)) // 20, int(round(y)) // 20
 
     def continuous_position(self, x, y):
@@ -51,20 +53,58 @@ class Env:
             obs_list.append(single_list)
         return obs_list
 
-    def step(self):  #TODO
-        pass
+    def step(self, action):  # TODO
+        obs_list = self.get_observation()
+        cmd_list = []
+        for i in range(0, 4):
+            if int(action[i]) == 0:  # action为0时表示不动
+                continue
+            new_grid_x = int(obs_list[i][1]) + self.move_action[int(action[i])][0]
+            new_grid_y = int(obs_list[i][2]) + self.move_action[int(action[i])][1]
+            new_pos_x, new_pos_y = self.continuous_position(new_grid_x, new_grid_y)
+            cmd_list.append(self.moveToPosition(str(i), 8.0, new_pos_x, new_pos_y, self.initial_height, False))
+        self._env.step(json.dumps(cmd_list))  # 环境里执行action
+        obs_list = json.loads(self.get_observation)  # 获得新的obs，离散化后的
 
     def reset(self):
+        self._env.reset()
         random_x = random.randint(0, 9)
         while random_x == 0 or random_x == 9:
             random_x = random.randint(0, 9)
         random_y = random.randint(0, 10)
         while random_y == 0 or random_y == 9:
             random_y = random.randint(0, 9)
-        self._target_x=random_x
-        self._target_y=random_y
+        self._target_x = random_x
+        self._target_y = random_y
         String = jpype.JClass('java.lang.String')
         self._env.addOneUav(String("0"), float(10.0), float(10.0), float(0.0))
         self._env.addOneUav(String("1"), float(10.0), float(50.0), float(0.0))
         self._env.addOneUav(String("2"), float(50.0), float(50.0), float(0.0))
         self._env.addOneUav(String("3"), float(50.0), float(10.0), float(0.0))
+        # 起飞
+        cmd_list = []
+        for i in range (0,4):
+            cmd_list.append(self.takeoff(str(i),self.initial_height))
+        self._env.step(json.dumps(cmd_list))
+
+    def moveToPosition(self, vehicle_name, velocity, x, y, z, _async):
+        request = {}
+        request['objectID'] = vehicle_name
+        request['messageID'] = str(uuid.uuid1())
+        request['function'] = 'moveToPosition'
+        request['velocity'] = velocity
+        request['position_x'] = x
+        request['position_y'] = y
+        request['position_z'] = z
+        request['async'] = _async
+        return request
+
+    def takeoff(self, vehicle_name, height=10.0, timeout=9999999, _async=False):
+        request = {}
+        request['objectID'] = vehicle_name
+        request['messageID'] = str(uuid.uuid1())
+        request['function'] = 'takeoff'
+        request['height'] = height
+        request['timeout'] = timeout
+        request['async'] = _async
+        return request

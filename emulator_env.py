@@ -39,10 +39,10 @@ class Env:
     def step(self, action):  # step  return a tuple（state_, reward, done, _）
         cmd_list = [self.moveByVelocity('uav0', float(action[0]), float(action[1]), 0.0, 1.0, True),
                     self.moveToPosition('ugv0', 5, random.uniform(-50, 50), random.uniform(-50, 50), 0, False)]
-        new_state_str = self._env.step(json.dumps(cmd_list))
+        self._env.step(json.dumps(cmd_list))
         self.step_cnt += 1
         print('step:' + str(self.step_cnt))
-        new_state_json = json.loads(str(new_state_str))
+        new_state_json = json.loads(str(self._env.get_observation()))  #TODO 对new_state_json进行解析
         uav_x, uav_y, uav_z = new_state_json[0], new_state_json[1], new_state_json[2]
         ugv_x, ugv_y, ugv_z = new_state_json[3], new_state_json[4], new_state_json[5]
         reward = self.get_reward(uav_x, uav_y, ugv_x, ugv_y)
