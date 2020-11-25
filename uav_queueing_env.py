@@ -1,9 +1,6 @@
 import jpype
 import json
-import random
-import numpy as np
 import uuid
-from gym import spaces
 import random
 
 jpype.startJVM(classpath=['./jars/UXVSim-1.0-SNAPSHOT-jar-with-dependencies.jar'])
