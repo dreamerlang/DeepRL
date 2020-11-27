@@ -20,7 +20,7 @@ class QNet(torch.nn.Module):
 
 
 net = QNet(11, 5)
-net.load_state_dict(torch.load('./models/45700.pkl'))
+net.load_state_dict(torch.load('./trained_models/45700.pkl'))
 
 
 def choose_action(state):
