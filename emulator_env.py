@@ -5,7 +5,8 @@ import uuid
 from gym import spaces
 import random
 
-jpype.startJVM(classpath=['./jars/UXVSim-1.0-SNAPSHOT-jar-with-dependencies.jar'])
+# jpype.startJVM(classpath=['./jars/UXVSim-1.0-SNAPSHOT-jar-with-dependencies.jar'])
+jpype.startJVM(classpath=['F:/IdeaProjects/UXVSimulator/target/UXVSim-1.0-SNAPSHOT-jar-with-dependencies.jar'])
 Emulator = jpype.JClass("uxvsim.Emulator")
 
 
