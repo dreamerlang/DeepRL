@@ -24,7 +24,6 @@ class Transormer:
 
 
 class DQNTransformer(Transormer):
-
     WIDTH = 64
     HEIGHT = 64
     EMPTY = np.zeros((WIDTH, HEIGHT), dtype=np.float32)
@@ -55,7 +54,7 @@ class DQNTransformer(Transormer):
         # res = img.resize((DQNTransformer.HEIGHT, DQNTransformer.WIDTH), Image.ANTIALIAS)
         # # res.save('./img.jpg')
         # res = np.asarray(res).copy()
-        
+
         # res /= 255.
         # self._buffer.append(res)
         return np.array([self._buffer[i] for i in [-4, -3, -2, -1]], dtype=np.float32)
@@ -75,9 +74,16 @@ class SimpleNormalizer(Transormer):
             data.append(self._env.reset())
             done = False
             while not done:
-                action = self._env.action_space.sample()
-                s, _, done, _ = self._env.step(action)
+                # TODO change
+                # action = self._env.action_space.sample()
+                actions = []
+                for i in range(self._env.agent_num):
+                    action = self._env.sample()
+                    actions.append(action)
+                s, _, done, _ = self._env.step(actions)
                 data.append(s)
+                if len(data) % 100 == 0:
+                    print("_gen_data:{}".format(len(data)))
         return data
 
     def transform(self, state):

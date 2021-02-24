@@ -1,5 +1,6 @@
-from uav_queueing_env import Env
+from uav_track_env import Env
 from policy import policy
+import time
 
 if __name__ == '__main__':
     env = Env()
@@ -14,10 +15,13 @@ if __name__ == '__main__':
                 print('success')
                 success_cnt = success_cnt + 1
                 break
+            print('t0:'+str(time.time()))
             action = policy(s)
-            s = env.step(action)
+            print('t1:'+str(time.time()))
+            s = env.step_for_queue(action)
+            print('t2:'+str(time.time()))
             step_cnt = step_cnt + 1
-            print(step_cnt)
+            print('t3:'+str(time.time()))
             if step_cnt > 200:
                 break
     print('finish')
