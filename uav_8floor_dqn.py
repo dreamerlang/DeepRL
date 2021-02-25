@@ -11,8 +11,8 @@ class DQNAgent:
 
     def __init__(self, env, qnet_cls, preprocessing_cls, args):
         self.env = env
-        self.state_shape = env.agent_num * 3
-        self.action_cnt = 14
+        self.state_shape = env.agent_num * 2
+        self.action_cnt = 10
         self.qnet = qnet_cls(self.state_shape, self.action_cnt)
         self.target_qnet = qnet_cls(self.state_shape, self.action_cnt)
         self.target_qnet.load_state_dict(self.qnet.state_dict())
@@ -72,14 +72,12 @@ class DQNAgent:
             actions = []
             for i in range(self.env.agent_num):
                 single_state = []
-                single_state.append(state[i * 3])
-                single_state.append(state[i * 3 + 1])
-                single_state.append(state[i * 3 + 2])
+                single_state.append(state[i * 2])
+                single_state.append(state[i * 2 + 1])
                 for j in range(self.env.agent_num):
                     if j != i:
-                        single_state.append(state[j * 3])
-                        single_state.append(state[j * 3 + 1])
-                        single_state.append(state[j * 3 + 2])
+                        single_state.append(state[j * 2])
+                        single_state.append(state[j * 2 + 1])
                 single_action = self.choose_action_with_exploration(single_state)
                 # print('single_action:{}'.format(single_action))
                 actions.append(single_action)
@@ -93,20 +91,16 @@ class DQNAgent:
             for i in range(self.env.agent_num):
                 single_state = []
                 single_state_ = []
-                single_state.append(state[i * 3])
-                single_state.append(state[i * 3 + 1])
-                single_state.append(state[i * 3 + 2])
-                single_state_.append(state_[i * 3])
-                single_state_.append(state_[i * 3 + 1])
-                single_state_.append(state_[i * 3 + 2])
+                single_state.append(state[i * 2])
+                single_state.append(state[i * 2 + 1])
+                single_state_.append(state_[i * 2])
+                single_state_.append(state_[i * 2 + 1])
                 for j in range(self.env.agent_num):
                     if j != i:
-                        single_state.append(state[j * 3])
-                        single_state.append(state[j * 3 + 1])
-                        single_state.append(state[j * 3 + 2])
-                        single_state_.append(state_[j * 3])
-                        single_state_.append(state_[j * 3 + 1])
-                        single_state_.append(state_[j * 3 + 2])
+                        single_state.append(state[j * 2])
+                        single_state.append(state[j * 2 + 1])
+                        single_state_.append(state_[j * 2])
+                        single_state_.append(state_[j * 2 + 1])
                 self.replay[i].add(single_state, actions[i], reward, single_state_, done)
             total += reward
             self.update()
@@ -164,16 +158,12 @@ class DQNAgent:
         self.sw.add_scalar('avg_q', val, self.episode)
 
     def normalize(self, state):  # 数据范围缩放到-1到1
-        state_box = [[self.env.min_x_bound, self.env.max_x_bound], [self.env.min_y_bound, self.env.max_y_bound],
-                     [self.env.min_z_bound, self.env.max_z_bound]]
+        state_box = [[self.env.min_x_bound, self.env.max_x_bound], [self.env.min_y_bound, self.env.max_y_bound]]
         for i in range(len(state)):
-            if i % 3 == 0:
+            if i % 2 == 0:
                 rate = (state[i] - state_box[0][0]) / (state_box[0][1] - state_box[0][0])
                 state[i] = rate * 2 - 1
-            elif i % 3 == 1:
+            elif i % 2 == 1:
                 rate = (state[i] - state_box[1][0]) / (state_box[1][1] - state_box[1][0])
-                state[i] = rate * 2 - 1
-            elif i % 3 == 2:
-                rate = (state[i] - state_box[2][0]) / (state_box[2][1] - state_box[2][0])
                 state[i] = rate * 2 - 1
         return state

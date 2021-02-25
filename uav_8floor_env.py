@@ -31,7 +31,7 @@ class Env:
     def reset(self):
         self._env.reset()
         self.step_cnt = 0
-        init_list = [[21,12],[23,14]]
+        init_list = [[21, 12], [23, 14]]
         # cnt = 0
         # while cnt < self.agent_num:
         #     init_pos = [np.random.uniform(19, 25), np.random.uniform(8, 16)]
@@ -51,7 +51,7 @@ class Env:
         self.agent_pos = [[] for _ in range(self.agent_num)]  # 清空一下数组
         for i in range(self.agent_num):
             String = jpype.JClass('java.lang.String')
-            self._env.addOneUav(String(str(i)), float(init_list[i][0]), float(init_list[i][1]), float(1.0))
+            self._env.addOneUav(String(str(i)), float(init_list[i][0]), float(init_list[i][1]), float(1.5))
             self.agent_pos[i].append(init_list[i][0])
             self.agent_pos[i].append(init_list[i][1])
             self.agent_pos[i].append(1.5)
@@ -66,23 +66,22 @@ class Env:
             if obj['type'] != 'uav':
                 continue
             # 限制范围
-            pos_x, pos_y, pos_z = obj['pos'][0], obj['pos'][1], obj['pos'][2]
+            pos_x, pos_y = obj['pos'][0], obj['pos'][1]
             if pos_x < self.min_x_bound:
                 pos_x = self.min_x_bound
             elif pos_x > self.max_x_bound:
                 pos_x = self.max_x_bound
             if pos_y < self.min_y_bound:
                 pos_y = self.min_y_bound
-            elif pos_z > self.max_z_bound:
-                pos_z = self.max_z_bound
-            self.agent_pos[int(obj['id'])][0], self.agent_pos[int(obj['id'])][1], self.agent_pos[int(obj['id'])][
-                2] = pos_x, pos_y, pos_z
+            elif pos_y > self.max_y_bound:
+                pos_y = self.max_y_bound
+            self.agent_pos[int(obj['id'])][0], self.agent_pos[int(obj['id'])][1] = pos_x, pos_y
         for pos in self.agent_pos:
-            for coordinate in pos:
-                obs_list.append(coordinate)
+            obs_list.append(pos[0])
+            obs_list.append(pos[1])
         return obs_list  # TODO obs是否还需要其他信息
 
-    def step(self, action):  # action[] 7*2=14 action取值范围为0到13 ，0，1时代表无人机静止
+    def step(self, action):  # action[] 5*2=10 action取值范围为0到9 ，0，1时代表无人机静止
         pre_state = copy.deepcopy(self.agent_pos)
         cmd_list = []
         for i in range(self.agent_num):
@@ -119,22 +118,22 @@ class Env:
                 cmd_list.append(
                     self.moveToPosition(str(i), 0.5, self.agent_pos[i][0],
                                         self.agent_pos[i][1] - 0.5, self.agent_pos[i][2]))
-            elif int(action[i] == 10):  # 向上飞20cm
-                cmd_list.append(
-                    self.moveToPosition(str(i), 0.2, self.agent_pos[i][0],
-                                        self.agent_pos[i][1], self.agent_pos[i][2] + 0.2))
-            elif int(action[i] == 11):  # 向上飞50cm
-                cmd_list.append(
-                    self.moveToPosition(str(i), 0.5, self.agent_pos[i][0],
-                                        self.agent_pos[i][1], self.agent_pos[i][2] + 0.5))
-            elif int(action[i] == 12):  # 向下飞20cm
-                cmd_list.append(
-                    self.moveToPosition(str(i), 0.2, self.agent_pos[i][0],
-                                        self.agent_pos[i][1], self.agent_pos[i][2] - 0.2))
-            elif int(action[i] == 13):  # 向下飞50cm
-                cmd_list.append(
-                    self.moveToPosition(str(i), 0.5, self.agent_pos[i][0],
-                                        self.agent_pos[i][1], self.agent_pos[i][2] - 0.5))
+            # elif int(action[i] == 10):  # 向上飞20cm
+            #     cmd_list.append(
+            #         self.moveToPosition(str(i), 0.2, self.agent_pos[i][0],
+            #                             self.agent_pos[i][1], self.agent_pos[i][2] + 0.2))
+            # elif int(action[i] == 11):  # 向上飞50cm
+            #     cmd_list.append(
+            #         self.moveToPosition(str(i), 0.5, self.agent_pos[i][0],
+            #                             self.agent_pos[i][1], self.agent_pos[i][2] + 0.5))
+            # elif int(action[i] == 12):  # 向下飞20cm
+            #     cmd_list.append(
+            #         self.moveToPosition(str(i), 0.2, self.agent_pos[i][0],
+            #                             self.agent_pos[i][1], self.agent_pos[i][2] - 0.2))
+            # elif int(action[i] == 13):  # 向下飞50cm
+            #     cmd_list.append(
+            #         self.moveToPosition(str(i), 0.5, self.agent_pos[i][0],
+            #                             self.agent_pos[i][1], self.agent_pos[i][2] - 0.5))
         # t1 = time.time()
         done = bool(self._env.stepFor8Floor(json.dumps(cmd_list)))  # 环境里执行action
         # t2 = time.time()
@@ -148,9 +147,8 @@ class Env:
 
         # 如果超过这个范围
         for i in range(self.agent_num):
-            if state_[i * 3] < 0.1 + self.min_x_bound or state_[i * 3] > self.max_x_bound - 0.1 or state_[
-                i * 3 + 1] < 0.1 + self.min_y_bound or state_[i * 3 + 1] > self.max_y_bound - 0.1 or state_[
-                i * 3 + 2] < 0.1 + self.min_z_bound or state_[i * 3 + 2] > self.max_z_bound - 0.1:
+            if state_[i * 2] < 0.1 + self.min_x_bound or state_[i * 2] > self.max_x_bound - 0.1 or state_[
+                i * 2 + 1] < 0.1 + self.min_y_bound or state_[i * 2 + 1] > self.max_y_bound - 0.1:
                 print("step_cnt:{}".format(self.step_cnt))
                 print('out of range')
                 print(state_)
@@ -159,15 +157,14 @@ class Env:
         reward = 0
         for i in range(self.agent_num):
             d_pre = (pre_state[i][0] - self.target_x) ** 2 + (pre_state[i][1] - self.target_y) ** 2
-            d_next = (state_[i * 3] - self.target_x) ** 2 + (state_[i * 3 + 1] - self.target_y) ** 2
+            d_next = (state_[i * 2] - self.target_x) ** 2 + (state_[i * 2 + 1] - self.target_y) ** 2
             reward += d_pre - d_next
-        # 某两辆无人机垂直方向距离较近时气流会干扰真机飞行
+        # 某两辆无人机距离较近时气流会干扰真机飞行
         for i in range(self.agent_num):
             for j in range(i + 1, self.agent_num):
                 if (self.agent_pos[i][0] - self.agent_pos[j][0]) ** 2 + (
-                        self.agent_pos[i][1] - self.agent_pos[j][1]) ** 2 <= 0.3 ** 2 and np.abs(self.agent_pos[i][2] - \
-                                                                                                 self.agent_pos[j][                                                                                             2]) <= 0.5:
-                    reward -= 30
+                        self.agent_pos[i][1] - self.agent_pos[j][1]) ** 2 <= 0.3 ** 2:
+                    reward -= 50
         done = self.terminal_state()
         if done:
             print('the eps succeed')
@@ -202,7 +199,7 @@ class Env:
         return request
 
     def sample(self):
-        return np.random.randint(0, 14)
+        return np.random.randint(0, 10)
 
     def close(self):
         self._env.close()
