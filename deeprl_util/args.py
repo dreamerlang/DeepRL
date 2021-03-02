@@ -26,14 +26,14 @@ class DQNArgs:
         self.gamma = 0.99
         self.batch = 32
         self.tau = 64
-        self.max_ep = 5000
+        self.max_ep = 30000
         self.log_interval = 1000
         self.test_interval = 64
-        self.lr = 5e-4
+        self.lr = 5e-5
         #
-        self.max_epsilon = 0.1
-        self.min_epsilon = 0.1
-        self.epsilon_decay = 0.5 / 500
+        self.max_epsilon = 1
+        self.min_epsilon = 0.15
+        self.epsilon_decay = 0.1 / 500
         #
         self.epsilon = 0.15
         self.env_name = 'test2'

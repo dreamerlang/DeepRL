@@ -22,16 +22,16 @@ class Env:
         self.step_cnt = 0
         self.max_step = 1000
         self.min_x_bound = 0.0
-        self.max_x_bound = 57.0
+        self.max_x_bound = 43.0
         self.min_y_bound = 0.0
-        self.max_y_bound = 28.0
+        self.max_y_bound = 16.0
         self.min_z_bound = 0.0
         self.max_z_bound = 3.0
 
     def reset(self):
         self._env.reset()
         self.step_cnt = 0
-        init_list = [[21, 12], [23, 14]]
+        init_list = [[20, 12], [24, 14]]
         # cnt = 0
         # while cnt < self.agent_num:
         #     init_pos = [np.random.uniform(19, 25), np.random.uniform(8, 16)]
@@ -143,7 +143,7 @@ class Env:
         if done:  # 如果发生碰撞
             print('collision')
             print("step_cnt:{}".format(self.step_cnt))
-            return state_, -300, done, {}
+            return state_, 0, done, {}
 
         # 如果超过这个范围
         for i in range(self.agent_num):
@@ -152,7 +152,7 @@ class Env:
                 print("step_cnt:{}".format(self.step_cnt))
                 print('out of range')
                 print(state_)
-                return state_, -300, True, {}
+                return state_, 0, True, {}
 
         reward = 0
         for i in range(self.agent_num):
@@ -160,15 +160,15 @@ class Env:
             d_next = (state_[i * 2] - self.target_x) ** 2 + (state_[i * 2 + 1] - self.target_y) ** 2
             reward += d_pre - d_next
         # 某两辆无人机距离较近时气流会干扰真机飞行
-        for i in range(self.agent_num):
-            for j in range(i + 1, self.agent_num):
-                if (self.agent_pos[i][0] - self.agent_pos[j][0]) ** 2 + (
-                        self.agent_pos[i][1] - self.agent_pos[j][1]) ** 2 <= 0.3 ** 2:
-                    reward -= 50
+        # for i in range(self.agent_num):
+        #     for j in range(i + 1, self.agent_num):
+        #         if (self.agent_pos[i][0] - self.agent_pos[j][0]) ** 2 + (
+        #                 self.agent_pos[i][1] - self.agent_pos[j][1]) ** 2 <= 0.3 ** 2:
+        #             reward -= 50
         done = self.terminal_state()
         if done:
             print('the eps succeed')
-            reward += 200 * self.agent_num
+            # reward += 200 * self.agent_num
 
         self.step_cnt += 1
         if self.step_cnt >= self.max_step:

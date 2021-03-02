@@ -11,7 +11,7 @@ class DQNAgent:
 
     def __init__(self, env, qnet_cls, preprocessing_cls, args):
         self.env = env
-        self.state_shape = env.agent_num * 2
+        self.state_shape = 2
         self.action_cnt = 10
         self.qnet = qnet_cls(self.state_shape, self.action_cnt)
         self.target_qnet = qnet_cls(self.state_shape, self.action_cnt)
@@ -74,19 +74,10 @@ class DQNAgent:
                 single_state = []
                 single_state.append(state[i * 2])
                 single_state.append(state[i * 2 + 1])
-                for j in range(self.env.agent_num):
-                    if j != i:
-                        single_state.append(state[j * 2])
-                        single_state.append(state[j * 2 + 1])
                 single_action = self.choose_action_with_exploration(single_state)
-                # print('single_action:{}'.format(single_action))
                 actions.append(single_action)
-            # t1=time.time()
             state_, reward, done, _ = self.env.step(actions)
-            # t2 = time.time()
-            # print("time:{}".format(t2-t1))
             state_ = self.normalize(state_)
-
             # 得到每个智能体的single_state与single_state_，并加入到buffer里
             for i in range(self.env.agent_num):
                 single_state = []
@@ -95,12 +86,6 @@ class DQNAgent:
                 single_state.append(state[i * 2 + 1])
                 single_state_.append(state_[i * 2])
                 single_state_.append(state_[i * 2 + 1])
-                for j in range(self.env.agent_num):
-                    if j != i:
-                        single_state.append(state[j * 2])
-                        single_state.append(state[j * 2 + 1])
-                        single_state_.append(state_[j * 2])
-                        single_state_.append(state_[j * 2 + 1])
                 self.replay[i].add(single_state, actions[i], reward, single_state_, done)
             total += reward
             self.update()
@@ -122,7 +107,7 @@ class DQNAgent:
         while not done:
             actions = []
             for i in range(self.env.agent_num):
-                action = self.choose_action(state)
+                action = self.choose_action([state[i*2],state[i*2+1]])
                 actions.append(action)
             state_, reward, done, _ = self.env.step(actions)
             state_ = self.normalize(state_)
