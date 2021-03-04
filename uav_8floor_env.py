@@ -52,9 +52,9 @@ class Env:
         for i in range(self.agent_num):
             String = jpype.JClass('java.lang.String')
             self._env.addOneUav(String(str(i)), float(init_list[i][0]), float(init_list[i][1]), float(1.5))
-            self.agent_pos[i].append(init_list[i][0])
-            self.agent_pos[i].append(init_list[i][1])
-            self.agent_pos[i].append(1.5)
+            self.agent_pos[i].append(init_list[i][0])  # x
+            self.agent_pos[i].append(init_list[i][1])  # y
+            self.agent_pos[i].append(1.5)              # z
         return self.get_observation()
 
     def get_observation(self):
@@ -85,6 +85,7 @@ class Env:
         pre_state = copy.deepcopy(self.agent_pos)
         cmd_list = []
         for i in range(self.agent_num):
+            assert 0 <= int(action[i]) <= 9
             if int(action[i] == 2):  # 向前飞20cm
                 cmd_list.append(
                     self.moveToPosition(str(i), 0.2, self.agent_pos[i][0] + 0.2,
@@ -143,7 +144,7 @@ class Env:
         if done:  # 如果发生碰撞
             print('collision')
             print("step_cnt:{}".format(self.step_cnt))
-            return state_, 0, done, {}
+            return state_, [0, 0], done, {}
 
         # 如果超过这个范围
         for i in range(self.agent_num):
@@ -152,13 +153,15 @@ class Env:
                 print("step_cnt:{}".format(self.step_cnt))
                 print('out of range')
                 print(state_)
-                return state_, 0, True, {}
+                return state_, [0, 0], True, {}
 
-        reward = 0
+        reward = [0, 0]
         for i in range(self.agent_num):
             d_pre = (pre_state[i][0] - self.target_x) ** 2 + (pre_state[i][1] - self.target_y) ** 2
             d_next = (state_[i * 2] - self.target_x) ** 2 + (state_[i * 2 + 1] - self.target_y) ** 2
-            reward += d_pre - d_next
+            reward[i] += d_pre - d_next
+            # reward[0] += d_pre - d_next
+            # reward[1] += d_pre - d_next
         # 某两辆无人机距离较近时气流会干扰真机飞行
         # for i in range(self.agent_num):
         #     for j in range(i + 1, self.agent_num):

@@ -26,7 +26,9 @@ class QNet(nn.Module):
 
 def train_dqn(env_name):
     args = DQNArgs()
-    args.lr = 5e-3
+    args.lr = 1e-4
+    args.gamma=0.9
+
 
     args.env_name = env_name
     args.log_dir = './logs/dqn/{}'.format(env_name)

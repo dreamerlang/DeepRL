@@ -32,7 +32,7 @@ class DQNAgent:
     def choose_action(self, state):
         state = torch.Tensor([state]).float()
         with torch.no_grad():
-            action = self.qnet(state).numpy()
+            action = self.qnet(state).numpy()  # TODO: fixit
         return np.argmax(action)
 
     def choose_action_with_exploration(self, state):
@@ -86,8 +86,8 @@ class DQNAgent:
                 single_state.append(state[i * 2 + 1])
                 single_state_.append(state_[i * 2])
                 single_state_.append(state_[i * 2 + 1])
-                self.replay[i].add(single_state, actions[i], reward, single_state_, done)
-            total += reward
+                self.replay[i].add(single_state, actions[i], reward[i], single_state_, done)
+            total += sum(reward)
             self.update()
             state = state_
             self.steps += 1
@@ -111,7 +111,7 @@ class DQNAgent:
                 actions.append(action)
             state_, reward, done, _ = self.env.step(actions)
             state_ = self.normalize(state_)
-            total += reward
+            total += sum(reward)
             state = state_
             self.steps += 1
         print('test episode finished, total reward={}'.format(total))

@@ -29,13 +29,13 @@ class DQNArgs:
         self.max_ep = 30000
         self.log_interval = 1000
         self.test_interval = 64
-        self.lr = 5e-5
+        self.lr = 1e-3
         #
-        self.max_epsilon = 1
-        self.min_epsilon = 0.15
-        self.epsilon_decay = 0.1 / 500
+        self.max_epsilon = 0.1
+        self.min_epsilon = 0.1
+        self.epsilon_decay = 0  # 0.1 / 500  # 0.1 / 500
         #
-        self.epsilon = 0.15
+        self.epsilon = 0.1
         self.env_name = 'test2'
         self.log_dir = './logs/dqn/{}'.format(self.env_name)
         self.save_dir = './result/dqn/{}'.format(self.env_name)
