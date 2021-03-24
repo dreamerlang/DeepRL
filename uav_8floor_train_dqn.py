@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 import gym
@@ -26,17 +28,26 @@ class QNet(nn.Module):
 
 def train_dqn(env_name):
     args = DQNArgs()
-    args.lr = 1e-4
-    args.gamma=0.9
-
+    args.lr = 1e-3
+    args.gamma = 0.90
 
     args.env_name = env_name
     args.log_dir = './logs/dqn/{}'.format(env_name)
     args.save_dir = './result/dqn/{}'.format(env_name)
     env = Env()
+    if not os.path.exists(args.save_dir):
+        os.mkdir(args.save_dir)
+    file = open('{}/arg.txt'.format(args.save_dir), 'w')
+    file.write('gamma:{}\n'.format(args.gamma))
+    file.write('learn_rate:{}\n'.format(args.lr))
+    file.write('epsilon:{}\n'.format(args.epsilon))
+    file.write('agent_number:{}\n'.format(env.agent_num))
+    file.close()
     agent = DQNAgent(env, QNet, SimpleNormalizer, args)
     pre_best = -1e9
     for ep in range(args.max_ep):
+        if ep % 5000 == 0:
+            env.jvmGC()
         agent.train_one_episode()
         if ep != 0 and ep % args.test_interval == 0:
             r = agent.test_model()

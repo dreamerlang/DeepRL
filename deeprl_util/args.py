@@ -26,16 +26,16 @@ class DQNArgs:
         self.gamma = 0.99
         self.batch = 32
         self.tau = 64
-        self.max_ep = 30000
+        self.max_ep = 100000
         self.log_interval = 1000
         self.test_interval = 64
         self.lr = 1e-3
         #
-        self.max_epsilon = 0.1
-        self.min_epsilon = 0.1
+        self.max_epsilon = 0.2
+        self.min_epsilon = 0.2
         self.epsilon_decay = 0  # 0.1 / 500  # 0.1 / 500
         #
-        self.epsilon = 0.1
+        self.epsilon = 0.2
         self.env_name = 'test2'
         self.log_dir = './logs/dqn/{}'.format(self.env_name)
         self.save_dir = './result/dqn/{}'.format(self.env_name)

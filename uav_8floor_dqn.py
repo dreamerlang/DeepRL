@@ -1,3 +1,4 @@
+import copy
 import os
 import time
 import numpy as np
@@ -11,8 +12,8 @@ class DQNAgent:
 
     def __init__(self, env, qnet_cls, preprocessing_cls, args):
         self.env = env
-        self.state_shape = 2
-        self.action_cnt = 10
+        self.state_shape = 2*env.agent_num
+        self.action_cnt = 9
         self.qnet = qnet_cls(self.state_shape, self.action_cnt)
         self.target_qnet = qnet_cls(self.state_shape, self.action_cnt)
         self.target_qnet.load_state_dict(self.qnet.state_dict())
@@ -66,17 +67,24 @@ class DQNAgent:
     def train_one_episode(self):
         state = self.env.reset()
         state = self.normalize(state)
+        test_state=[]
         done = False
         total = 0
         while not done:
             actions = []
             for i in range(self.env.agent_num):
-                single_state = []
-                single_state.append(state[i * 2])
-                single_state.append(state[i * 2 + 1])
+                single_state = [state[i * 2], state[i * 2 + 1]]
+                for j in range(self.env.agent_num):
+                    if j != i:
+                        single_state.append(state[j * 2])
+                        single_state.append(state[j * 2 + 1])
                 single_action = self.choose_action_with_exploration(single_state)
                 actions.append(single_action)
             state_, reward, done, _ = self.env.step(actions)
+            test_state = copy.deepcopy(state_)
+            self.steps += 1
+            if done:
+                print("step_cnt:{}".format(self.env.step_cnt))
             state_ = self.normalize(state_)
             # 得到每个智能体的single_state与single_state_，并加入到buffer里
             for i in range(self.env.agent_num):
@@ -86,12 +94,18 @@ class DQNAgent:
                 single_state.append(state[i * 2 + 1])
                 single_state_.append(state_[i * 2])
                 single_state_.append(state_[i * 2 + 1])
+                for j in range(self.env.agent_num):
+                    if j != i:
+                        single_state.append(state[j * 2])
+                        single_state.append(state[j * 2 + 1])
+                        single_state_.append(state_[j * 2])
+                        single_state_.append(state_[j * 2 + 1])
                 self.replay[i].add(single_state, actions[i], reward[i], single_state_, done)
             total += sum(reward)
             self.update()
             state = state_
-            self.steps += 1
         self.episode += 1
+        print('test_state:{}'.format(test_state))
         print('train episode {} finished,total reward={}'.format(self.episode, total))
         self._now_epsilon -= self.args.epsilon_decay
         self._now_epsilon = max(self._now_epsilon, self.args.min_epsilon)
@@ -107,13 +121,17 @@ class DQNAgent:
         while not done:
             actions = []
             for i in range(self.env.agent_num):
-                action = self.choose_action([state[i*2],state[i*2+1]])
+                single_state = [state[i * 2], state[i * 2 + 1]]
+                for j in range(self.env.agent_num):
+                    if j != i:
+                        single_state.append(state[j * 2])
+                        single_state.append(state[j * 2 + 1])
+                action = self.choose_action(single_state)
                 actions.append(action)
             state_, reward, done, _ = self.env.step(actions)
             state_ = self.normalize(state_)
             total += sum(reward)
             state = state_
-            self.steps += 1
         print('test episode finished, total reward={}'.format(total))
         return total
 

@@ -8,11 +8,7 @@ from torch.autograd import Variable
 from uav_8floor_train_dqn import QNet
 import random
 import numpy as np
-from pyheatmap.heatmap import HeatMap
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
 
 
 
@@ -89,28 +85,29 @@ def test2(state):
 
 
 if __name__ == '__main__':
-    qnet=QNet(2,10)
-    path = os.path.join('/Users/hulang/nju/s1/RL/DeepRL/result/dqn/test_no_building/', 'best.pkl')
-    state_dict = torch.load(path)
-    qnet.load_state_dict(state_dict)
-    # state = torch.tensor([22.8400/57.0*2-1, 3.0998/28*2-1], dtype=torch.float32)
-    # print(qnet.forward(state))
-    x_list=[]
-    y_list=[]
-    data=[]
-    # fig = plt.figure()
-    # ax1 = plt.axes(projection='3d')
-    for i in range(10000):
-        x=random.uniform(-1,1)
-        x_list.append(x)
-        y=random.uniform(-1,1)
-        y_list.append(y)
-        state = torch.tensor([x,y], dtype=torch.float32)
-        q_max=qnet.forward(state).max()
-        # data.append(float(q_max))
-        data.append([int((x+1)*1000),int((y+1)*1000),float(q_max)])
-    heat = HeatMap(data)
-    heat.heatmap(save_as="test_no_building2.png")  # 热图
+
+    # qnet=QNet(2,10)
+    # path = os.path.join('/Users/hulang/nju/s1/RL/DeepRL/result/dqn/test_no_building/', 'best.pkl')
+    # state_dict = torch.load(path)
+    # qnet.load_state_dict(state_dict)
+    # # state = torch.tensor([22.8400/57.0*2-1, 3.0998/28*2-1], dtype=torch.float32)
+    # # print(qnet.forward(state))
+    # x_list=[]
+    # y_list=[]
+    # data=[]
+    # # fig = plt.figure()
+    # # ax1 = plt.axes(projection='3d')
+    # for i in range(10000):
+    #     x=random.uniform(-1,1)
+    #     x_list.append(x)
+    #     y=random.uniform(-1,1)
+    #     y_list.append(y)
+    #     state = torch.tensor([x,y], dtype=torch.float32)
+    #     q_max=qnet.forward(state).max()
+    #     # data.append(float(q_max))
+    #     data.append([int((x+1)*1000),int((y+1)*1000),float(q_max)])
+    # heat = HeatMap(data)
+    # heat.heatmap(save_as="test_no_building2.png")  # 热图
 
 
 
